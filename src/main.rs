@@ -1,22 +1,12 @@
 use std::fs;
 
-struct Symbol<'a> {
-    lex: &'a str,
-    addr: i32,
-    t: SymbolType,
-}
-
-enum SymbolType {
-    Int,
-}
-
 struct Lexer {
     pub lex: String,
     pub state: u8,
 }
 
 impl Lexer {
-    pub fn new(&self) -> Self {
+    pub fn new() -> Self {
         Self {
             lex: String::new(),
             state: 0,
@@ -39,16 +29,40 @@ impl Lexer {
         }
     }
 
-    pub fn state_1(&mut self, ch: char) {}
+    pub fn state_1(&mut self, ch: char) {
+        if self.is_letter(ch) || ch.is_numeric() {
+            self.lex.push(ch);
+        } else {
+            self.state = 99;
+        }
+    }
+
+    pub fn get_lexemes(&mut self, file: String) -> Vec<String> {
+        let mut lexemes = vec![];
+
+        self.lex.clear();
+
+        for ch in file.chars() {
+            match self.state {
+                0 => self.state_0(ch),
+                1 => self.state_1(ch),
+                99 => {
+                    lexemes.push(self.lex.clone());
+                    self.lex.clear();
+                    self.state = 0;
+                }
+                _ => {}
+            }
+        }
+
+        lexemes
+    }
 }
 
 fn main() {
     let file = fs::read_to_string("input.juri").unwrap();
 
-    for ch in file.chars() {
-        if ch == '\n' {
-            continue;
-        };
-        println!("{}", ch);
-    }
+    let mut lexer = Lexer::new();
+
+    let mut _lexemes = lexer.get_lexemes(file);
 }
