@@ -1,5 +1,7 @@
 use std::str::Chars;
 
+const EOF: char = '#';
+
 pub struct Lexer {
     pub lex: String,
     pub state: u8,
@@ -28,16 +30,41 @@ impl Lexer {
 
         self.lex.push(ch);
 
-        if self.is_letter(ch) {
+        if self.is_letter(ch) || ch == '_' {
             self.state = 1;
         } else if ch.is_numeric() {
             self.state = 2;
-        } else if ch == '=' || ch == '+' {
+        } else if ch == '.' {
+            self.state = 3;
+        } else if ch == '<' || ch == '>' || ch == '!' {
+            self.state = 5;
+        } else if ch == '&' || ch == '|' {
+            self.state = 6;
+        } else if ch == '/' {
+            self.state = 7;
+        } else if ch == '\'' {
+            self.state = 10;
+        } else if ch == '\"' {
+            self.state = 12;
+        } else if ch == '='
+            || ch == '+'
+            || ch == '-'
+            || ch == '*'
+            || ch == ','
+            || ch == '('
+            || ch == ')'
+            || ch == '{'
+            || ch == '}'
+            || ch == '['
+            || ch == ']'
+        {
             self.state = 99;
         } else if ch == ';' {
             self.state = 99;
         } else if ch == '\n' {
             self.lex.clear();
+        } else if ch == EOF {
+            self.state = 99;
         }
     }
 
@@ -65,8 +92,92 @@ impl Lexer {
     pub fn state_3(&mut self, ch: char) {
         if ch.is_numeric() {
             self.lex.push(ch);
+            self.state = 4;
+        } else if ch == EOF {
+            // eof error
+        } else {
+            self.lex.push(ch);
+            // invalid lex error
+        }
+    }
+
+    pub fn state_4(&mut self, ch: char) {
+        if ch.is_numeric() {
+            self.lex.push(ch);
         } else {
             self.keep_char = true;
+            self.state = 99;
+        }
+    }
+
+    pub fn state_5(&mut self, ch: char) {
+        if ch == '=' {
+            self.lex.push(ch);
+        } else {
+            self.keep_char = true;
+        }
+
+        self.state = 99;
+    }
+
+    pub fn state_6(&mut self, ch: char) {
+        self.lex.push(ch);
+
+        if self.lex.starts_with(ch) {
+            self.state = 99;
+        } else {
+            self.lex.push(ch);
+            // invalid lex error
+        }
+    }
+
+    pub fn state_7(&mut self, ch: char) {
+        if ch == '*' {
+            self.lex.clear();
+            self.state = 7;
+        } else {
+            self.state = 99;
+        }
+    }
+
+    pub fn state_8(&mut self, ch: char) {
+        if ch == EOF {
+            // eof error
+        } else if ch == '*' {
+            self.state = 8;
+        }
+    }
+
+    pub fn state_9(&mut self, ch: char) {
+        if ch == EOF {
+            // eof error
+        } else if ch == '/' {
+            self.state = 0;
+        } else if ch != '*' {
+            self.state = 7;
+        }
+    }
+
+    pub fn state_10(&mut self, ch: char) {
+        if ch == EOF {
+            // eof error
+        } else if !ch.is_ascii() {
+            self.lex.push(ch);
+            // invalid lex error
+        } else {
+            self.lex.push(ch);
+            self.state = 11;
+        }
+    }
+
+    pub fn state_11(&mut self, ch: char) {
+        if ch == EOF {
+            // eof error
+        } else if ch != '\'' {
+            self.lex.push(ch);
+            // invalid lex error
+        } else {
+            self.lex.push(ch);
             self.state = 99;
         }
     }
@@ -92,13 +203,10 @@ impl Lexer {
                 _ => {}
             }
 
-            match self.keep_char {
-                false => {
-                    ch_opt = chars.next();
-                }
-                true => {
-                    ch_opt = Some(ch_val);
-                }
+            ch_opt = if !self.keep_char {
+                chars.next()
+            } else {
+                Some(ch_val)
             }
         }
 
