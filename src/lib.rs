@@ -1,138 +1,141 @@
-use std::str::Chars;
-
 const EOF: char = '#';
 
 pub struct Lexer {
+    pub input: Vec<char>,
+    pub input_pos: usize,
+    pub ch: char,
     pub lex: String,
     pub state: u8,
-    pub keep_char: bool,
 }
 
 impl Lexer {
-    pub fn new() -> Self {
+    pub fn new(input: Vec<char>) -> Self {
         Self {
+            input,
+            input_pos: 0,
+            ch: '#',
             lex: String::new(),
             state: 0,
-            keep_char: false,
         }
     }
 
-    pub fn is_letter(&self, ch: char) -> bool {
-        (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+    pub fn is_letter(&self) -> bool {
+        (self.ch >= 'a' && self.ch <= 'z') || (self.ch >= 'A' && self.ch <= 'Z')
     }
 
-    pub fn state_0(&mut self, ch: char) {
-        self.keep_char = false;
+    pub fn is_digit(&self) -> bool {
+        self.ch >= '0' && self.ch <= '9'
+    }
 
-        if ch == ' ' {
+    pub fn state_0(&mut self) {
+        if self.ch == ' ' {
             return;
         }
 
-        self.lex.push(ch);
+        self.lex.push(self.ch);
 
-        if self.is_letter(ch) || ch == '_' {
+        if self.is_letter() || self.ch == '_' {
             self.state = 1;
-        } else if ch.is_numeric() {
+        } else if self.is_digit() {
             self.state = 2;
-        } else if ch == '.' {
+        } else if self.ch == '.' {
             self.state = 3;
-        } else if ch == '<' || ch == '>' || ch == '!' {
+        } else if self.ch == '<' || self.ch == '>' || self.ch == '!' {
             self.state = 5;
-        } else if ch == '&' || ch == '|' {
+        } else if self.ch == '&' || self.ch == '|' {
             self.state = 6;
-        } else if ch == '/' {
+        } else if self.ch == '/' {
             self.state = 7;
-        } else if ch == '\'' {
+        } else if self.ch == '\'' {
             self.state = 10;
-        } else if ch == '\"' {
+        } else if self.ch == '\"' {
             self.state = 12;
-        } else if ch == '='
-            || ch == '+'
-            || ch == '-'
-            || ch == '*'
-            || ch == ','
-            || ch == '('
-            || ch == ')'
-            || ch == '{'
-            || ch == '}'
-            || ch == '['
-            || ch == ']'
+        } else if self.ch == '='
+            || self.ch == '+'
+            || self.ch == '-'
+            || self.ch == '*'
+            || self.ch == ','
+            || self.ch == '('
+            || self.ch == ')'
+            || self.ch == '{'
+            || self.ch == '}'
+            || self.ch == '['
+            || self.ch == ']'
         {
             self.state = 99;
-        } else if ch == ';' {
+        } else if self.ch == ';' {
             self.state = 99;
-        } else if ch == '\n' {
+        } else if self.ch == '\n' {
             self.lex.clear();
-        } else if ch == EOF {
+        } else if self.ch == EOF {
             self.state = 99;
         }
     }
 
-    pub fn state_1(&mut self, ch: char) {
-        if self.is_letter(ch) || ch.is_numeric() {
-            self.lex.push(ch);
+    pub fn state_1(&mut self) {
+        if self.is_letter() || self.is_digit() {
+            self.lex.push(self.ch);
         } else {
-            self.keep_char = true;
+            self.input_pos -= 1;
             self.state = 99;
         }
     }
 
-    pub fn state_2(&mut self, ch: char) {
-        if ch.is_numeric() {
-            self.lex.push(ch);
-        } else if ch == '.' {
-            self.lex.push(ch);
+    pub fn state_2(&mut self) {
+        if self.is_digit() {
+            self.lex.push(self.ch);
+        } else if self.ch == '.' {
+            self.lex.push(self.ch);
             self.state = 3;
         } else {
-            self.keep_char = true;
+            self.input_pos -= 1;
             self.state = 99;
         }
     }
 
-    pub fn state_3(&mut self, ch: char) {
-        if ch.is_numeric() {
-            self.lex.push(ch);
+    pub fn state_3(&mut self) {
+        if self.is_digit() {
+            self.lex.push(self.ch);
             self.state = 4;
-        } else if ch == EOF {
+        } else if self.ch == EOF {
             // eof error
         } else {
-            self.lex.push(ch);
+            self.lex.push(self.ch);
             // invalid lex error
         }
     }
 
-    pub fn state_4(&mut self, ch: char) {
-        if ch.is_numeric() {
-            self.lex.push(ch);
+    pub fn state_4(&mut self) {
+        if self.is_digit() {
+            self.lex.push(self.ch);
         } else {
-            self.keep_char = true;
+            self.input_pos -= 1;
             self.state = 99;
         }
     }
 
-    pub fn state_5(&mut self, ch: char) {
-        if ch == '=' {
-            self.lex.push(ch);
+    pub fn state_5(&mut self) {
+        if self.ch == '=' {
+            self.lex.push(self.ch);
         } else {
-            self.keep_char = true;
+            self.input_pos -= 1;
         }
-
         self.state = 99;
     }
 
-    pub fn state_6(&mut self, ch: char) {
-        self.lex.push(ch);
+    pub fn state_6(&mut self) {
+        self.lex.push(self.ch);
 
-        if self.lex.starts_with(ch) {
+        if self.lex.starts_with(self.ch) {
             self.state = 99;
         } else {
-            self.lex.push(ch);
+            self.lex.push(self.ch);
             // invalid lex error
         }
     }
 
-    pub fn state_7(&mut self, ch: char) {
-        if ch == '*' {
+    pub fn state_7(&mut self) {
+        if self.ch == '*' {
             self.lex.clear();
             self.state = 7;
         } else {
@@ -140,80 +143,76 @@ impl Lexer {
         }
     }
 
-    pub fn state_8(&mut self, ch: char) {
-        if ch == EOF {
+    pub fn state_8(&mut self) {
+        if self.ch == EOF {
             // eof error
-        } else if ch == '*' {
+        } else if self.ch == '*' {
             self.state = 8;
         }
     }
 
-    pub fn state_9(&mut self, ch: char) {
-        if ch == EOF {
+    pub fn state_9(&mut self) {
+        if self.ch == EOF {
             // eof error
-        } else if ch == '/' {
+        } else if self.ch == '/' {
             self.state = 0;
-        } else if ch != '*' {
+        } else if self.ch != '*' {
             self.state = 7;
         }
     }
 
-    pub fn state_10(&mut self, ch: char) {
-        if ch == EOF {
+    pub fn state_10(&mut self) {
+        if self.ch == EOF {
             // eof error
-        } else if !ch.is_ascii() {
-            self.lex.push(ch);
+        } else if !self.ch.is_ascii() {
+            self.lex.push(self.ch);
             // invalid lex error
         } else {
-            self.lex.push(ch);
+            self.lex.push(self.ch);
             self.state = 11;
         }
     }
 
-    pub fn state_11(&mut self, ch: char) {
-        if ch == EOF {
+    pub fn state_11(&mut self) {
+        if self.ch == EOF {
             // eof error
-        } else if ch != '\'' {
-            self.lex.push(ch);
+        } else if self.ch != '\'' {
+            self.lex.push(self.ch);
             // invalid lex error
         } else {
-            self.lex.push(ch);
+            self.lex.push(self.ch);
             self.state = 99;
         }
     }
 
-    pub fn get_lexemes(&mut self, mut chars: Chars) -> Vec<String> {
-        let mut lexemes = vec![];
+    pub fn next_lexeme(&mut self) -> String {
+        self.state = 0;
+        self.lex.clear();
 
-        let mut ch_opt = chars.next();
-
-        while ch_opt.is_some() {
-            let ch_val = ch_opt.unwrap();
+        while self.input_pos < self.input.len() {
+            self.ch = self.input[self.input_pos];
 
             match self.state {
-                0 => self.state_0(ch_val),
-                1 => self.state_1(ch_val),
-                2 => self.state_2(ch_val),
-                3 => self.state_3(ch_val),
+                0 => self.state_0(),
+                1 => self.state_1(),
+                2 => self.state_2(),
+                3 => self.state_3(),
+                4 => self.state_4(),
+                5 => self.state_5(),
+                6 => self.state_6(),
+                7 => self.state_7(),
+                8 => self.state_8(),
+                9 => self.state_9(),
+                10 => self.state_10(),
+                11 => self.state_11(),
                 99 => {
-                    lexemes.push(self.lex.clone());
-                    self.lex.clear();
-                    self.state = 0;
+                    break;
                 }
                 _ => {}
             }
-
-            ch_opt = if !self.keep_char {
-                chars.next()
-            } else {
-                Some(ch_val)
-            }
+            self.input_pos += 1;
         }
 
-        if self.lex.len() > 0 {
-            lexemes.push(self.lex.clone());
-        }
-
-        lexemes
+        self.lex.clone()
     }
 }
