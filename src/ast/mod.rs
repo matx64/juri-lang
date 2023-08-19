@@ -1,3 +1,5 @@
+pub mod lexer;
+
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -9,13 +11,13 @@ pub struct Token {
 #[derive(Debug, Clone)]
 pub enum TokenKind {
     Identifier,
-    Integer,
+    IntegerKeyword,
     IntegerValue,
-    Float,
+    FloatKeyword,
     FloatValue,
-    Char,
+    CharKeyword,
     CharValue,
-    String,
+    StringKeyword,
     StringValue,
     For,
     While,
@@ -48,10 +50,10 @@ pub enum TokenKind {
 pub fn create_symbol_table<'a>() -> HashMap<&'a str, TokenKind> {
     let mut symbol_table = HashMap::new();
 
-    symbol_table.insert("int", TokenKind::Integer);
-    symbol_table.insert("float", TokenKind::Float);
-    symbol_table.insert("char", TokenKind::Char);
-    symbol_table.insert("string", TokenKind::String);
+    symbol_table.insert("int", TokenKind::IntegerKeyword);
+    symbol_table.insert("float", TokenKind::FloatKeyword);
+    symbol_table.insert("char", TokenKind::CharKeyword);
+    symbol_table.insert("string", TokenKind::StringKeyword);
     symbol_table.insert("for", TokenKind::For);
     symbol_table.insert("while", TokenKind::While);
     symbol_table.insert("if", TokenKind::If);

@@ -1,8 +1,5 @@
+use super::{create_symbol_table, Token, TokenKind};
 use std::collections::HashMap;
-
-use utils::{create_symbol_table, Token, TokenKind};
-
-mod utils;
 
 pub struct Lexer<'a> {
     pub symbol_table: HashMap<&'a str, TokenKind>,

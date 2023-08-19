@@ -1,6 +1,7 @@
-use std::fs;
+mod ast;
 
-use juri_lang::Lexer;
+use ast::lexer::Lexer;
+use std::fs;
 
 fn main() {
     let input = fs::read_to_string("examples/input.juri")
