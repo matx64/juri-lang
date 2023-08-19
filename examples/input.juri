@@ -1,6 +1,10 @@
 int a = 3;
 int b = a + 5 * a;
+float c = .94321;
+float d = 9298.41423217;
+char ch = 'a';
 
 if (a > b) {
-    b = 10; 
+    b = 10;
+} else {
 }

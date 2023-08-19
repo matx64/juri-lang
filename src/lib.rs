@@ -185,12 +185,25 @@ impl Lexer {
         }
     }
 
+    fn next_char(&mut self) {
+        if self.input_pos < self.input.len() {
+            self.ch = self.input[self.input_pos];
+            self.input_pos += 1;
+
+            if self.ch == '\r' {
+                self.next_char();
+            }
+        } else {
+            self.ch = '#';
+        }
+    }
+
     pub fn next_lexeme(&mut self) -> String {
         self.state = 0;
         self.lex.clear();
 
-        while self.input_pos < self.input.len() {
-            self.ch = self.input[self.input_pos];
+        while self.state != 99 {
+            self.next_char();
 
             match self.state {
                 0 => self.state_0(),
@@ -205,12 +218,8 @@ impl Lexer {
                 9 => self.state_9(),
                 10 => self.state_10(),
                 11 => self.state_11(),
-                99 => {
-                    break;
-                }
-                _ => {}
+                _ => unreachable!(),
             }
-            self.input_pos += 1;
         }
 
         self.lex.clone()

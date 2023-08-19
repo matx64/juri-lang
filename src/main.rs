@@ -3,10 +3,10 @@ use std::fs;
 use juri_lang::Lexer;
 
 fn main() {
-    let input = fs::read_to_string("examples/input.juri").unwrap();
-
-    let mut input: Vec<char> = input.chars().collect();
-    input.push('#'); // EOF
+    let input = fs::read_to_string("examples/input.juri")
+        .unwrap()
+        .chars()
+        .collect();
 
     let mut lexer = Lexer::new(input);
 
