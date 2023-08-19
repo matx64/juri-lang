@@ -1,5 +1,3 @@
-const EOF: char = '#';
-
 pub struct Lexer {
     pub input: Vec<char>,
     pub input_pos: usize,
@@ -14,7 +12,7 @@ impl Lexer {
             input,
             input_pos: 0,
             ch: '#',
-            lex: String::new(),
+            lex: String::with_capacity(32),
             state: 0,
         }
     }
@@ -25,6 +23,46 @@ impl Lexer {
 
     pub fn is_digit(&self) -> bool {
         self.ch >= '0' && self.ch <= '9'
+    }
+
+    fn next_char(&mut self) {
+        if self.input_pos < self.input.len() {
+            self.ch = self.input[self.input_pos];
+            self.input_pos += 1;
+
+            if self.ch == '\r' {
+                self.next_char(); // CRLF
+            }
+        } else {
+            self.ch = '#'; // EOF
+        }
+    }
+
+    pub fn next_lexeme(&mut self) -> String {
+        self.state = 0;
+        self.lex.clear();
+
+        while self.state != 99 {
+            self.next_char();
+
+            match self.state {
+                0 => self.state_0(),
+                1 => self.state_1(),
+                2 => self.state_2(),
+                3 => self.state_3(),
+                4 => self.state_4(),
+                5 => self.state_5(),
+                6 => self.state_6(),
+                7 => self.state_7(),
+                8 => self.state_8(),
+                9 => self.state_9(),
+                10 => self.state_10(),
+                11 => self.state_11(),
+                _ => unreachable!(),
+            }
+        }
+
+        self.lex.clone()
     }
 
     pub fn state_0(&mut self) {
@@ -67,7 +105,7 @@ impl Lexer {
             self.state = 99;
         } else if self.ch == '\n' {
             self.lex.clear();
-        } else if self.ch == EOF {
+        } else if self.ch == '#' {
             self.state = 99;
         }
     }
@@ -97,11 +135,13 @@ impl Lexer {
         if self.is_digit() {
             self.lex.push(self.ch);
             self.state = 4;
-        } else if self.ch == EOF {
+        } else if self.ch == '#' {
             // eof error
+            panic!();
         } else {
             self.lex.push(self.ch);
             // invalid lex error
+            panic!();
         }
     }
 
@@ -131,6 +171,7 @@ impl Lexer {
         } else {
             self.lex.push(self.ch);
             // invalid lex error
+            panic!();
         }
     }
 
@@ -144,16 +185,18 @@ impl Lexer {
     }
 
     pub fn state_8(&mut self) {
-        if self.ch == EOF {
+        if self.ch == '#' {
             // eof error
+            panic!();
         } else if self.ch == '*' {
             self.state = 8;
         }
     }
 
     pub fn state_9(&mut self) {
-        if self.ch == EOF {
+        if self.ch == '#' {
             // eof error
+            panic!();
         } else if self.ch == '/' {
             self.state = 0;
         } else if self.ch != '*' {
@@ -162,11 +205,13 @@ impl Lexer {
     }
 
     pub fn state_10(&mut self) {
-        if self.ch == EOF {
+        if self.ch == '#' {
             // eof error
+            panic!();
         } else if !self.ch.is_ascii() {
             self.lex.push(self.ch);
             // invalid lex error
+            panic!();
         } else {
             self.lex.push(self.ch);
             self.state = 11;
@@ -174,54 +219,16 @@ impl Lexer {
     }
 
     pub fn state_11(&mut self) {
-        if self.ch == EOF {
+        if self.ch == '#' {
             // eof error
+            panic!();
         } else if self.ch != '\'' {
             self.lex.push(self.ch);
             // invalid lex error
+            panic!();
         } else {
             self.lex.push(self.ch);
             self.state = 99;
         }
-    }
-
-    fn next_char(&mut self) {
-        if self.input_pos < self.input.len() {
-            self.ch = self.input[self.input_pos];
-            self.input_pos += 1;
-
-            if self.ch == '\r' {
-                self.next_char();
-            }
-        } else {
-            self.ch = '#';
-        }
-    }
-
-    pub fn next_lexeme(&mut self) -> String {
-        self.state = 0;
-        self.lex.clear();
-
-        while self.state != 99 {
-            self.next_char();
-
-            match self.state {
-                0 => self.state_0(),
-                1 => self.state_1(),
-                2 => self.state_2(),
-                3 => self.state_3(),
-                4 => self.state_4(),
-                5 => self.state_5(),
-                6 => self.state_6(),
-                7 => self.state_7(),
-                8 => self.state_8(),
-                9 => self.state_9(),
-                10 => self.state_10(),
-                11 => self.state_11(),
-                _ => unreachable!(),
-            }
-        }
-
-        self.lex.clone()
     }
 }
