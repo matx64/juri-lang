@@ -11,6 +11,6 @@ fn main() {
     let mut lexer = Lexer::new(input);
 
     while lexer.input_pos < lexer.input.len() {
-        println!("{}", lexer.next_lexeme());
+        println!("{:?}", lexer.next_token());
     }
 }

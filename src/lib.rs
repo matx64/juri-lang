@@ -1,19 +1,29 @@
-pub struct Lexer {
+use std::collections::HashMap;
+
+use utils::{create_symbol_table, Token, TokenKind};
+
+mod utils;
+
+pub struct Lexer<'a> {
+    pub symbol_table: HashMap<&'a str, TokenKind>,
     pub input: Vec<char>,
     pub input_pos: usize,
     pub ch: char,
     pub lex: String,
     pub state: u8,
+    pub token: Option<Token>,
 }
 
-impl Lexer {
+impl<'a> Lexer<'a> {
     pub fn new(input: Vec<char>) -> Self {
         Self {
+            symbol_table: create_symbol_table(),
             input,
             input_pos: 0,
             ch: '#',
             lex: String::with_capacity(32),
             state: 0,
+            token: None,
         }
     }
 
@@ -38,9 +48,10 @@ impl Lexer {
         }
     }
 
-    pub fn next_lexeme(&mut self) -> String {
+    pub fn next_token(&mut self) -> Option<Token> {
         self.state = 0;
         self.lex.clear();
+        self.token = None;
 
         while self.state != 99 {
             self.next_char();
@@ -58,11 +69,12 @@ impl Lexer {
                 9 => self.state_9(),
                 10 => self.state_10(),
                 11 => self.state_11(),
+                14 => self.state_14(),
                 _ => unreachable!(),
             }
         }
 
-        self.lex.clone()
+        self.token.clone()
     }
 
     pub fn state_0(&mut self) {
@@ -99,10 +111,9 @@ impl Lexer {
             || self.ch == '}'
             || self.ch == '['
             || self.ch == ']'
+            || self.ch == ';'
         {
-            self.state = 99;
-        } else if self.ch == ';' {
-            self.state = 99;
+            self.state = 14;
         } else if self.ch == '\n' {
             self.lex.clear();
         } else if self.ch == '#' {
@@ -114,6 +125,19 @@ impl Lexer {
         if self.is_letter() || self.is_digit() {
             self.lex.push(self.ch);
         } else {
+            let kind = self.symbol_table.get(self.lex.as_str());
+
+            self.token = match kind {
+                Some(val) => Some(Token {
+                    lex: None,
+                    kind: val.clone(),
+                }),
+                None => Some(Token {
+                    lex: Some(self.lex.clone()),
+                    kind: TokenKind::Identifier,
+                }),
+            };
+
             self.input_pos -= 1;
             self.state = 99;
         }
@@ -126,6 +150,10 @@ impl Lexer {
             self.lex.push(self.ch);
             self.state = 3;
         } else {
+            self.token = Some(Token {
+                lex: Some(self.lex.clone()),
+                kind: TokenKind::IntegerValue,
+            });
             self.input_pos -= 1;
             self.state = 99;
         }
@@ -139,8 +167,8 @@ impl Lexer {
             // eof error
             panic!();
         } else {
-            self.lex.push(self.ch);
             // invalid lex error
+            // self.lex.push(self.ch);
             panic!();
         }
     }
@@ -149,6 +177,10 @@ impl Lexer {
         if self.is_digit() {
             self.lex.push(self.ch);
         } else {
+            self.token = Some(Token {
+                lex: Some(self.lex.clone()),
+                kind: TokenKind::FloatValue,
+            });
             self.input_pos -= 1;
             self.state = 99;
         }
@@ -158,6 +190,10 @@ impl Lexer {
         if self.ch == '=' {
             self.lex.push(self.ch);
         } else {
+            self.token = Some(Token {
+                lex: None,
+                kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
+            });
             self.input_pos -= 1;
         }
         self.state = 99;
@@ -167,9 +203,12 @@ impl Lexer {
         self.lex.push(self.ch);
 
         if self.lex.starts_with(self.ch) {
+            self.token = Some(Token {
+                lex: None,
+                kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
+            });
             self.state = 99;
         } else {
-            self.lex.push(self.ch);
             // invalid lex error
             panic!();
         }
@@ -209,8 +248,8 @@ impl Lexer {
             // eof error
             panic!();
         } else if !self.ch.is_ascii() {
-            self.lex.push(self.ch);
             // invalid lex error
+            // self.lex.push(self.ch);
             panic!();
         } else {
             self.lex.push(self.ch);
@@ -223,12 +262,24 @@ impl Lexer {
             // eof error
             panic!();
         } else if self.ch != '\'' {
-            self.lex.push(self.ch);
             // invalid lex error
+            // self.lex.push(self.ch);
             panic!();
         } else {
+            self.token = Some(Token {
+                lex: Some(self.lex.clone()),
+                kind: TokenKind::CharValue,
+            });
             self.lex.push(self.ch);
             self.state = 99;
         }
+    }
+
+    pub fn state_14(&mut self) {
+        self.token = Some(Token {
+            lex: None,
+            kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
+        });
+        self.state = 99;
     }
 }
