@@ -1,10 +1,12 @@
 int a = 3;
-int b = a + 5 * a;
+int _b = a + 5 * a - 2;
 float c = .94321;
 float d = 9298.41423217;
 char ch = 'a';
+string name = "matheus"
 
-if (a > b) {
-    b = 10;
-} else {
+if (a == _b) {
+    _b = 10;
+} else if (a >= _b) {
+    name = "testing";
 }

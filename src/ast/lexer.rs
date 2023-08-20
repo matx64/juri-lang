@@ -42,6 +42,7 @@ impl<'a> Lexer<'a> {
             }
         } else {
             self.ch = '#'; // EOF
+            self.input_pos += 1;
         }
     }
 
@@ -66,7 +67,8 @@ impl<'a> Lexer<'a> {
                 9 => self.state_9(),
                 10 => self.state_10(),
                 11 => self.state_11(),
-                14 => self.state_14(),
+                12 => self.state_12(),
+                13 => self.state_13(),
                 _ => unreachable!(),
             }
         }
@@ -87,7 +89,7 @@ impl<'a> Lexer<'a> {
             self.state = 2;
         } else if self.ch == '.' {
             self.state = 3;
-        } else if self.ch == '<' || self.ch == '>' || self.ch == '!' {
+        } else if self.ch == '=' || self.ch == '<' || self.ch == '>' || self.ch == '!' {
             self.state = 5;
         } else if self.ch == '&' || self.ch == '|' {
             self.state = 6;
@@ -97,8 +99,7 @@ impl<'a> Lexer<'a> {
             self.state = 10;
         } else if self.ch == '\"' {
             self.state = 12;
-        } else if self.ch == '='
-            || self.ch == '+'
+        } else if self.ch == '+'
             || self.ch == '-'
             || self.ch == '*'
             || self.ch == ','
@@ -110,7 +111,7 @@ impl<'a> Lexer<'a> {
             || self.ch == ']'
             || self.ch == ';'
         {
-            self.state = 14;
+            self.state = 13;
         } else if self.ch == '\n' {
             self.lex.clear();
         } else if self.ch == '#' {
@@ -186,13 +187,13 @@ impl<'a> Lexer<'a> {
     pub fn state_5(&mut self) {
         if self.ch == '=' {
             self.lex.push(self.ch);
-        } else {
-            self.token = Some(Token {
-                lex: None,
-                kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
-            });
-            self.input_pos -= 1;
+            self.input_pos += 1;
         }
+        self.token = Some(Token {
+            lex: None,
+            kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
+        });
+        self.input_pos -= 1;
         self.state = 99;
     }
 
@@ -263,20 +264,42 @@ impl<'a> Lexer<'a> {
             // self.lex.push(self.ch);
             panic!();
         } else {
+            self.lex.push(self.ch);
             self.token = Some(Token {
                 lex: Some(self.lex.clone()),
                 kind: TokenKind::CharValue,
             });
-            self.lex.push(self.ch);
             self.state = 99;
         }
     }
 
-    pub fn state_14(&mut self) {
+    pub fn state_12(&mut self) {
+        if self.ch == '#' {
+            // eof error
+            panic!();
+        } else if !self.ch.is_ascii() {
+            // invalid lex error
+            // self.lex.push(self.ch);
+            panic!();
+        } else {
+            self.lex.push(self.ch);
+
+            if self.ch == '\"' {
+                self.token = Some(Token {
+                    lex: Some(self.lex.clone()),
+                    kind: TokenKind::StringValue,
+                });
+                self.state = 99;
+            }
+        }
+    }
+
+    pub fn state_13(&mut self) {
         self.token = Some(Token {
             lex: None,
             kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
         });
+        self.input_pos -= 1;
         self.state = 99;
     }
 }
