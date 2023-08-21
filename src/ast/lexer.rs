@@ -1,8 +1,8 @@
-use super::{create_symbol_table, Token, TokenKind};
-use std::collections::HashMap;
+use super::{Token, TokenKind};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 pub struct Lexer<'a> {
-    pub symbol_table: HashMap<&'a str, TokenKind>,
+    pub symbol_table: Rc<RefCell<HashMap<&'a str, TokenKind>>>,
     pub input: Vec<char>,
     pub input_pos: usize,
     pub ch: char,
@@ -12,9 +12,9 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(input: Vec<char>) -> Self {
+    pub fn new(input: Vec<char>, symbol_table: Rc<RefCell<HashMap<&'a str, TokenKind>>>) -> Self {
         Self {
-            symbol_table: create_symbol_table(),
+            symbol_table,
             input,
             input_pos: 0,
             ch: '#',
@@ -102,7 +102,7 @@ impl<'a> Lexer<'a> {
         } else if self.ch == '+'
             || self.ch == '-'
             || self.ch == '*'
-            || self.ch == ','
+            || self.ch == '&'
             || self.ch == '('
             || self.ch == ')'
             || self.ch == '{'
@@ -123,7 +123,8 @@ impl<'a> Lexer<'a> {
         if self.is_letter() || self.is_digit() {
             self.lex.push(self.ch);
         } else {
-            let kind = self.symbol_table.get(self.lex.as_str());
+            let kind = self.symbol_table.borrow();
+            let kind = kind.get(self.lex.as_str());
 
             self.token = match kind {
                 Some(val) => Some(Token {
@@ -191,7 +192,12 @@ impl<'a> Lexer<'a> {
         }
         self.token = Some(Token {
             lex: None,
-            kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
+            kind: self
+                .symbol_table
+                .borrow()
+                .get(self.lex.as_str())
+                .unwrap()
+                .clone(),
         });
         self.input_pos -= 1;
         self.state = 99;
@@ -203,7 +209,12 @@ impl<'a> Lexer<'a> {
         if self.lex.starts_with(self.ch) {
             self.token = Some(Token {
                 lex: None,
-                kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
+                kind: self
+                    .symbol_table
+                    .borrow()
+                    .get(self.lex.as_str())
+                    .unwrap()
+                    .clone(),
             });
             self.state = 99;
         } else {
@@ -297,7 +308,12 @@ impl<'a> Lexer<'a> {
     pub fn state_13(&mut self) {
         self.token = Some(Token {
             lex: None,
-            kind: self.symbol_table.get(self.lex.as_str()).unwrap().clone(),
+            kind: self
+                .symbol_table
+                .borrow()
+                .get(self.lex.as_str())
+                .unwrap()
+                .clone(),
         });
         self.input_pos -= 1;
         self.state = 99;
