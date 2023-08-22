@@ -17,5 +17,25 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn _start(&mut self) {}
+    pub fn start(&mut self, token: Option<Token>) {
+        println!("{:?}", token);
+
+        if token.is_none() {
+            return;
+        }
+
+        self.current_token = token.clone();
+
+        match token.unwrap().kind {
+            TokenKind::IntegerKeyword
+            | TokenKind::FloatKeyword
+            | TokenKind::CharKeyword
+            | TokenKind::StringKeyword => self.declaration(),
+            _ => self.command(),
+        }
+    }
+
+    pub fn declaration(&mut self) {}
+
+    pub fn command(&mut self) {}
 }

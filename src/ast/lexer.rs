@@ -26,23 +26,15 @@ impl<'a> Lexer<'a> {
 
     pub fn is_letter(&self) -> bool {
         match self.ch {
-            Some(ch) => {
-                return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
-            }
-            None => {
-                return false;
-            }
+            Some(ch) => (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'),
+            None => false,
         }
     }
 
     pub fn is_digit(&self) -> bool {
         match self.ch {
-            Some(ch) => {
-                return ch >= '0' && ch <= '9';
-            }
-            None => {
-                return false;
-            }
+            Some(ch) => ch >= '0' && ch <= '9',
+            None => false,
         }
     }
 
