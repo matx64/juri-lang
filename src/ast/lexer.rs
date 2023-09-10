@@ -24,14 +24,14 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn is_letter(&self) -> bool {
+    fn is_letter(&self) -> bool {
         match self.ch {
             Some(ch) => (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'),
             None => false,
         }
     }
 
-    pub fn is_digit(&self) -> bool {
+    fn is_digit(&self) -> bool {
         match self.ch {
             Some(ch) => ch >= '0' && ch <= '9',
             None => false,
@@ -82,7 +82,7 @@ impl<'a> Lexer<'a> {
         self.token.clone()
     }
 
-    pub fn state_0(&mut self) {
+    fn state_0(&mut self) {
         if self.ch.is_none() {
             self.state = 99;
             return;
@@ -130,7 +130,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_1(&mut self) {
+    fn state_1(&mut self) {
         if self.is_letter() || self.is_digit() {
             self.lex.push(self.ch.unwrap());
         } else {
@@ -153,7 +153,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_2(&mut self) {
+    fn state_2(&mut self) {
         if self.is_digit() {
             self.lex.push(self.ch.unwrap());
         } else if self.ch.is_some() && self.ch.unwrap() == '.' {
@@ -169,7 +169,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_3(&mut self) {
+    fn state_3(&mut self) {
         if self.is_digit() {
             self.lex.push(self.ch.unwrap());
             self.state = 4;
@@ -183,7 +183,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_4(&mut self) {
+    fn state_4(&mut self) {
         if self.is_digit() {
             self.lex.push(self.ch.unwrap());
         } else {
@@ -196,7 +196,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_5(&mut self) {
+    fn state_5(&mut self) {
         if self.ch.is_some() && self.ch.unwrap() == '=' {
             self.lex.push(self.ch.unwrap());
             self.input_pos += 1;
@@ -214,7 +214,7 @@ impl<'a> Lexer<'a> {
         self.state = 99;
     }
 
-    pub fn state_6(&mut self) {
+    fn state_6(&mut self) {
         self.lex.push(self.ch.unwrap());
 
         if self.ch.is_some() && self.lex.starts_with(self.ch.unwrap()) {
@@ -234,7 +234,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_7(&mut self) {
+    fn state_7(&mut self) {
         if self.ch.is_some() && self.ch.unwrap() == '*' {
             self.lex.clear();
             self.state = 7;
@@ -243,7 +243,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_8(&mut self) {
+    fn state_8(&mut self) {
         if self.ch.is_none() {
             // eof error
             panic!();
@@ -252,7 +252,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_9(&mut self) {
+    fn state_9(&mut self) {
         if self.ch.is_none() {
             // eof error
             panic!();
@@ -263,7 +263,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_10(&mut self) {
+    fn state_10(&mut self) {
         if self.ch.is_none() {
             // eof error
             panic!();
@@ -277,7 +277,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_11(&mut self) {
+    fn state_11(&mut self) {
         if self.ch.is_none() {
             // eof error
             panic!();
@@ -295,7 +295,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_12(&mut self) {
+    fn state_12(&mut self) {
         if self.ch.is_none() {
             // eof error
             panic!();
@@ -316,7 +316,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn state_13(&mut self) {
+    fn state_13(&mut self) {
         self.token = Some(Token {
             lex: None,
             kind: self

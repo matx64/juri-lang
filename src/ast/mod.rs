@@ -3,7 +3,7 @@ pub mod parser;
 
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use self::{lexer::Lexer, parser::Parser};
+use self::parser::Parser;
 
 pub struct Ast<'a> {
     pub symbol_table: Rc<RefCell<HashMap<&'a str, TokenKind>>>,
@@ -17,12 +17,9 @@ impl<'a> Ast<'a> {
     }
 
     pub fn run(&mut self, input: Vec<char>) {
-        let mut lexer = Lexer::new(input, self.symbol_table.clone());
-        let mut _parser = Parser::new(self.symbol_table.clone());
+        let mut parser = Parser::new(self.symbol_table.clone(), input);
 
-        while lexer.input_pos < lexer.input.len() {
-            println!("{:?}", lexer.next_token());
-        }
+        parser.start();
     }
 }
 
