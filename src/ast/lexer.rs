@@ -8,7 +8,7 @@ pub struct Lexer<'a> {
     pub ch: Option<char>,
     pub lex: String,
     pub state: u8,
-    pub token: Option<Token>,
+    pub token: Token,
 }
 
 impl<'a> Lexer<'a> {
@@ -20,7 +20,7 @@ impl<'a> Lexer<'a> {
             ch: None,
             lex: String::with_capacity(32),
             state: 0,
-            token: None,
+            token: Token::new(None, TokenKind::EOF),
         }
     }
 
@@ -52,10 +52,10 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn next_token(&mut self) -> Option<Token> {
+    pub fn next_token(&mut self) -> Token {
         self.state = 0;
         self.lex.clear();
-        self.token = None;
+        self.token = Token::new(None, TokenKind::EOF);
 
         while self.state != 99 {
             self.next_char();
@@ -138,14 +138,8 @@ impl<'a> Lexer<'a> {
             let kind = kind.get(self.lex.as_str());
 
             self.token = match kind {
-                Some(val) => Some(Token {
-                    lex: None,
-                    kind: val.clone(),
-                }),
-                None => Some(Token {
-                    lex: Some(self.lex.clone()),
-                    kind: TokenKind::Identifier,
-                }),
+                Some(val) => Token::new(None, val.clone()),
+                None => Token::new(Some(self.lex.clone()), TokenKind::Identifier),
             };
 
             self.input_pos -= 1;
@@ -160,10 +154,7 @@ impl<'a> Lexer<'a> {
             self.lex.push(self.ch.unwrap());
             self.state = 3;
         } else {
-            self.token = Some(Token {
-                lex: Some(self.lex.clone()),
-                kind: TokenKind::IntegerValue,
-            });
+            self.token = Token::new(Some(self.lex.clone()), TokenKind::IntegerValue);
             self.input_pos -= 1;
             self.state = 99;
         }
@@ -187,10 +178,7 @@ impl<'a> Lexer<'a> {
         if self.is_digit() {
             self.lex.push(self.ch.unwrap());
         } else {
-            self.token = Some(Token {
-                lex: Some(self.lex.clone()),
-                kind: TokenKind::FloatValue,
-            });
+            self.token = Token::new(Some(self.lex.clone()), TokenKind::FloatValue);
             self.input_pos -= 1;
             self.state = 99;
         }
@@ -201,15 +189,14 @@ impl<'a> Lexer<'a> {
             self.lex.push(self.ch.unwrap());
             self.input_pos += 1;
         }
-        self.token = Some(Token {
-            lex: None,
-            kind: self
-                .symbol_table
+        self.token = Token::new(
+            None,
+            self.symbol_table
                 .borrow()
                 .get(self.lex.as_str())
                 .unwrap()
                 .clone(),
-        });
+        );
         self.input_pos -= 1;
         self.state = 99;
     }
@@ -218,15 +205,14 @@ impl<'a> Lexer<'a> {
         self.lex.push(self.ch.unwrap());
 
         if self.ch.is_some() && self.lex.starts_with(self.ch.unwrap()) {
-            self.token = Some(Token {
-                lex: None,
-                kind: self
-                    .symbol_table
+            self.token = Token::new(
+                None,
+                self.symbol_table
                     .borrow()
                     .get(self.lex.as_str())
                     .unwrap()
                     .clone(),
-            });
+            );
             self.state = 99;
         } else {
             // invalid lex error
@@ -287,10 +273,7 @@ impl<'a> Lexer<'a> {
             panic!();
         } else {
             self.lex.push(self.ch.unwrap());
-            self.token = Some(Token {
-                lex: Some(self.lex.clone()),
-                kind: TokenKind::CharValue,
-            });
+            self.token = Token::new(Some(self.lex.clone()), TokenKind::CharValue);
             self.state = 99;
         }
     }
@@ -307,25 +290,21 @@ impl<'a> Lexer<'a> {
             self.lex.push(self.ch.unwrap());
 
             if self.ch.unwrap() == '\"' {
-                self.token = Some(Token {
-                    lex: Some(self.lex.clone()),
-                    kind: TokenKind::StringValue,
-                });
+                self.token = Token::new(Some(self.lex.clone()), TokenKind::StringValue);
                 self.state = 99;
             }
         }
     }
 
     fn state_13(&mut self) {
-        self.token = Some(Token {
-            lex: None,
-            kind: self
-                .symbol_table
+        self.token = Token::new(
+            None,
+            self.symbol_table
                 .borrow()
                 .get(self.lex.as_str())
                 .unwrap()
                 .clone(),
-        });
+        );
         self.input_pos -= 1;
         self.state = 99;
     }

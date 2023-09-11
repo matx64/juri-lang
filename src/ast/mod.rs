@@ -29,7 +29,13 @@ pub struct Token {
     pub kind: TokenKind,
 }
 
-#[derive(Debug, Clone)]
+impl Token {
+    pub fn new(lex: Option<String>, kind: TokenKind) -> Self {
+        Self { lex, kind }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
     Identifier,
     IntegerKeyword,
@@ -66,6 +72,7 @@ pub enum TokenKind {
     CloseCurlyBracket,
     OpenSquareBracket,
     CloseSquareBracket,
+    EOF,
 }
 
 pub fn create_symbol_table<'a>() -> HashMap<&'a str, TokenKind> {
