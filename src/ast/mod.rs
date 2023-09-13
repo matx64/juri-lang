@@ -42,10 +42,13 @@ pub enum TokenKind {
     IntegerValue,
     FloatKeyword,
     FloatValue,
+    BoolKeyword,
     CharKeyword,
     CharValue,
     StringKeyword,
     StringValue,
+    True,
+    False,
     For,
     While,
     If,
@@ -80,8 +83,11 @@ pub fn create_symbol_table<'a>() -> HashMap<&'a str, TokenKind> {
 
     symbol_table.insert("int", TokenKind::IntegerKeyword);
     symbol_table.insert("float", TokenKind::FloatKeyword);
+    symbol_table.insert("bool", TokenKind::BoolKeyword);
     symbol_table.insert("char", TokenKind::CharKeyword);
     symbol_table.insert("string", TokenKind::StringKeyword);
+    symbol_table.insert("true", TokenKind::True);
+    symbol_table.insert("false", TokenKind::False);
     symbol_table.insert("for", TokenKind::For);
     symbol_table.insert("while", TokenKind::While);
     symbol_table.insert("if", TokenKind::If);
